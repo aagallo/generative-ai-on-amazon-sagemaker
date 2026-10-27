@@ -1,0 +1,42 @@
+{
+  "option": "option-3-dpo",
+  "model": "Qwen/Qwen3-4B-Instruct-2507 + QLoRA (merged)",
+  "dataset": "nvidia/When2Call train_pref (first 1000 rows: 891 train / 100 val / 9 test)",
+  "repo": "https://github.com/aagallo/generative-ai-on-amazon-sagemaker.git",
+  "ref": "test/combined",
+  "commit": "6cf538c43b7e7fbd999303ce1dfcc70b6758b35f",
+  "instance_type": "g7e.2xlarge",
+  "az": "ap-south-1b",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "launch": "torchrun --nproc_per_node 1",
+  "attn_implementation": "sdpa",
+  "fsdp": "on",
+  "packages": {
+    "accelerate": "1.14.0",
+    "bitsandbytes": "0.49.2",
+    "datasets": "4.8.5",
+    "kernels": "0.15.2",
+    "peft": "0.19.1",
+    "tokenizers": "0.22.2",
+    "torch": "2.8.0+cu128",
+    "transformers": "5.13.1",
+    "trl": "1.5.1"
+  },
+  "stage_seconds": {
+    "env": 51,
+    "upload": 764,
+    "train": 667,
+    "boot": 0,
+    "attn_probe": 60,
+    "data": 80
+  },
+  "train_results": {
+    "epoch": 1.0,
+    "total_flos": 9530582409150464.0,
+    "train_loss": 0.6636178152901786,
+    "train_runtime": 429.7804,
+    "train_samples": 891,
+    "train_samples_per_second": 2.073,
+    "train_steps_per_second": 0.13
+  }
+}

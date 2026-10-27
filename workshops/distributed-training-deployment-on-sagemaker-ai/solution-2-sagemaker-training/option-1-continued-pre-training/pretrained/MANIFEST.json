@@ -1,0 +1,42 @@
+{
+  "option": "option-1-continued-pre-training",
+  "model": "Qwen/Qwen3-4B-Instruct-2507 + QLoRA (merged)",
+  "dataset": "HuggingFaceTB/finemath infiwebmath-4plus (first 1000 docs, 2048-token blocks)",
+  "repo": "https://github.com/aagallo/generative-ai-on-amazon-sagemaker.git",
+  "ref": "test/combined",
+  "commit": "6cf538c43b7e7fbd999303ce1dfcc70b6758b35f",
+  "instance_type": "g7e.2xlarge",
+  "az": "ap-south-1a",
+  "gpu": "NVIDIA RTX PRO 6000 Blackwell Server Edition",
+  "launch": "torchrun --nproc_per_node 1",
+  "attn_implementation": "sdpa",
+  "fsdp": "on",
+  "packages": {
+    "accelerate": "1.14.0",
+    "bitsandbytes": "0.49.2",
+    "datasets": "4.8.5",
+    "kernels": "0.15.2",
+    "peft": "0.19.1",
+    "tokenizers": "0.22.2",
+    "torch": "2.8.0+cu128",
+    "transformers": "5.13.1",
+    "trl": "1.5.1"
+  },
+  "stage_seconds": {
+    "env": 55,
+    "upload": 1691,
+    "train": 1440,
+    "boot": 0,
+    "attn_probe": 64,
+    "data": 90
+  },
+  "train_results": {
+    "epoch": 5.0,
+    "total_flos": 5.7631365660672e+16,
+    "train_loss": 1.3338617621527777,
+    "train_runtime": 1209.322,
+    "train_samples": 705,
+    "train_samples_per_second": 2.915,
+    "train_steps_per_second": 0.186
+  }
+}
