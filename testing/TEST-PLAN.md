@@ -20,8 +20,10 @@ Run all cells. Expected (measured in us-east-1):
 
 Per option: `1-prepare-data.ipynb` → **`2b-import-pretrained.ipynb`** (instead of 2) → `3-deployment.ipynb`.
 * 2b: CPU merge job (`ml.m5.4xlarge`) ~5 min, writes the model where 3-deployment looks for it (tested: SFT)
-* 3-deployment: GPU endpoint with 5 instance pools and a 1 h provisioning budget. In us-east-1 it took ~48 min to
-  get a GPU; the first attempt failed after 10 min with the old 600 s budget (fixed)
+* 3-deployment: GPU endpoint with 5 instance pools and a 1 h provisioning budget. Tested end to end for SFT
+  (2b → 3-deployment → streamed answer → cleanup): GPU in ~10 min on the last run (~48 min on an earlier one; the
+  first attempt failed after 10 min with the old 600 s budget, fixed). The SFT answer starts with a stray
+  `<tool_call>` token: that comes from the workshop's QLoRA recipe, not the import
 * Fixed today: vLLM container failed to load the tokenizer saved by transformers 5 (`'list' object has no
   attribute 'keys'`). Affects normal Lab 2 runs too; `train.py` and the merge script now write a compatible config
 * GRPO (option 4) has no shipped adapter (veRL does a full fine-tune, 8.2 GB); use its normal Lab 2
