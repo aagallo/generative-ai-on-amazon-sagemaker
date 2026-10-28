@@ -17,6 +17,10 @@ drops JSON, by design of the lesson), 04 GRPO 13.5 min (exact 0% → 40%, reward
 ### 01-sft.ipynb
 
 Run all cells. Expected (measured in us-east-1):
+* setup cell finds or creates the account's MLflow App (first time ~5 min; set `MLFLOW_APP_ARN` to reuse one,
+  `None` to skip). Every job in 01-04 logs to experiment `cpu-fine-tuning-techniques`; the MLflow cell prints a link
+* the data cell uploads `data/train/train.jsonl` and `data/test/test.jsonl` to S3; the job log shows
+  `data from channels: 400 train ..., 30 test ...`
 * 3 training jobs in parallel (on-demand / spot / fallback), ~4 min each; spot billed ~57 s vs ~180 s.
   If Spot has no capacity (happened on 2026-10-28), the wait cell continues 10 min after on-demand finishes and
   the Spot job stops itself after 30 min; the rest of the notebook uses the on-demand model
