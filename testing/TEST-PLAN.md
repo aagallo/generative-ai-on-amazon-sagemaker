@@ -40,8 +40,9 @@ In `2-*.ipynb`, set `CAPACITY = "spot"` or `"fallback"` in the capacity cell; ml
   registers it; tested) → `3-evaluation` (GPU eval job; base + adapter merged at load) → `4-deployment` → `5-cleanup`
 * Expected eval (notebook 3, 400 held-out frames): L1 fine-tuned ~0.22 vs base ~0.48 vs mean-action ~0.36 → Approved
 * GPU training path: `2-fine-tune-vla` smoke run on a single L40S (fallback over g6e sizes)
-* Not yet run on SageMaker: notebook 3 eval job and notebook 4 endpoint from the adapter (both waited for GPU
-  capacity in us-east-1; the same code paths passed on an EC2 RTX PRO 6000 box)
+* Tested end to end on SageMaker (us-east-1): 1 → 2b → 3 (eval job waited 79 min for a g6e GPU, then ran in 7.8
+  billed min: L1 0.220 vs base 0.478 vs mean-action 0.359, Approved) → 4 (endpoint in service in 8 min, ~0.45 s per
+  request) → 5 (cleanup). The first request took 86 s; the handler now warms up during load to avoid that
 
 ## Cleanup
 
