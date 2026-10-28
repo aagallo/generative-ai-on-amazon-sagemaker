@@ -47,6 +47,17 @@ def main():
     if tokenizer.pad_token is None:
         tokenizer.pad_token = tokenizer.eos_token
     tokenizer.save_pretrained(args.output_dir)
+    # transformers 5 writes extra_special_tokens as a list, but the vLLM serving container's transformers 4.x
+    # expects a dict and fails to load the tokenizer ("'list' object has no attribute 'keys'"). The tokens are
+    # also defined in tokenizer.json, so drop the key for compatibility.
+    _tok_cfg_path = os.path.join(args.output_dir, "tokenizer_config.json")
+    if os.path.exists(_tok_cfg_path):
+        with open(_tok_cfg_path) as _f:
+            _tok_cfg = json.load(_f)
+        if isinstance(_tok_cfg.get("extra_special_tokens"), list):
+            _tok_cfg.pop("extra_special_tokens")
+            with open(_tok_cfg_path, "w") as _f:
+                json.dump(_tok_cfg, _f, indent=2, ensure_ascii=False)
 
     for name in sorted(os.listdir(args.output_dir)):
         size = os.path.getsize(os.path.join(args.output_dir, name))
