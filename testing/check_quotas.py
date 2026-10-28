@@ -6,11 +6,12 @@ Needs servicequotas:ListServiceQuotas. Quotas are per account and per region.
 import sys
 
 import boto3
+from botocore.config import Config
 
 TARGETS = {
     "CPU fine-tuning techniques": {
         "training job usage": ["ml.c7i.4xlarge", "ml.m7i.4xlarge", "ml.c6i.4xlarge", "ml.m6i.4xlarge", "ml.m5.4xlarge"],
-        "spot training job usage": ["ml.c7i.4xlarge"],
+        "spot training job usage": ["ml.m5.4xlarge"],
         "endpoint usage": ["ml.m5.xlarge", "ml.m7i.xlarge", "ml.c7i.2xlarge"],
     },
     "OpenVLA (examples/openvla-lora-sagemaker)": {
@@ -33,10 +34,13 @@ TARGETS = {
 
 
 def main(region=None):
-    sq = boto3.client("service-quotas", region_name=region)
-    quotas = {q["QuotaName"]: q["Value"]
-              for page in sq.get_paginator("list_service_quotas").paginate(ServiceCode="sagemaker")
-              for q in page["Quotas"]}
+    sq = boto3.client("service-quotas", region_name=region,
+                      config=Config(retries={"max_attempts": 10, "mode": "adaptive"}))
+    # applied values override defaults; a quota still at its default is only in the defaults list
+    quotas = {}
+    for op in ("list_aws_default_service_quotas", "list_service_quotas"):
+        for page in sq.get_paginator(op).paginate(ServiceCode="sagemaker"):
+            quotas.update({q["QuotaName"]: q["Value"] for q in page["Quotas"]})
     print(f"SageMaker quotas in {sq.meta.region_name} (0 = cannot launch; request an increase in Service Quotas)\n")
     for lab, usages in TARGETS.items():
         print(f"== {lab}")

@@ -14,19 +14,21 @@ Clear notebook outputs before `git pull` (Edit > Clear Outputs of All Cells), or
 Measured in us-east-1: 02 CPT 5 min (questions 0% → 100%), 03 DPO 9.4 min (DPO+SFT exact 0% → 90%; plain DPO
 drops JSON, by design of the lesson), 04 GRPO 13.5 min (exact 0% → 40%, reward 0.46 → 0.79).
 
-### 01-sft.ipynb
+### 01-sft.ipynb (full workflow, ~25 min)
 
-Run all cells. Expected (measured in us-east-1):
-* setup cell finds or creates the account's MLflow App (first time ~5 min; set `MLFLOW_APP_ARN` to reuse one,
-  `None` to skip). Every job in 01-04 logs to experiment `cpu-fine-tuning-techniques`; the MLflow cell prints a link
-* the data cell uploads `data/train/train.jsonl` and `data/test/test.jsonl` to S3; the job log shows
-  `data from channels: 400 train ..., 30 test ...`
-* 3 training jobs in parallel (on-demand / spot / fallback), ~4 min each; spot billed ~57 s vs ~180 s.
-  If Spot has no capacity (happened on 2026-10-28), the wait cell continues 10 min after on-demand finishes and
-  the Spot job stops itself after 30 min; the rest of the notebook uses the on-demand model
-* exact match base 0% → fine-tuned 100% for all three
-* 3 endpoints (real-time / pools / serverless) in service after ~3.5 min; serverless first call ~46 s (cold start),
-  then ~4 s; last cell deletes them
+Run all cells. Expected (measured in us-east-1, 2026-10-28):
+* setup finds or creates the account's MLflow App (first time ~5 min; `MLFLOW_APP_ARN` to reuse one, `None` to
+  skip). Every job in 01-04 logs to experiment `cpu-fine-tuning-techniques`; the MLflow cell prints a link
+* 1. Prepare: uploads `data/train/train.jsonl` and `data/test/test.jsonl`; the training log shows
+  `data from channel: 400 train examples`
+* 2. Fine-tune: 3 training jobs in parallel, ~4 min each: on-demand and fallback on `ml.c7i.4xlarge`, Spot on
+  `ml.m5.4xlarge` (`c7i.4xlarge` had a Spot placement score of 1 and no Spot capacity all afternoon). If Spot
+  still waits, the cell continues 10 min after on-demand and the Spot job stops itself after 30 min
+* 3. Evaluate: separate eval job ~3-4 min, exact match base 0% → fine-tuned 100%; gate PASS; a new version in
+  model package group `cpu-ft-sft-booking`, Approved
+* 4. Deploy: 3 endpoints from the approved package in ~3.7 min; serverless first call ~30 s (cold start), then
+  ~4 s; the base vs fine-tuned cell shows code-block/"7pm" answers vs bare JSON/"19:00"
+* 5. Clean up deletes the endpoints (flags for the registry and S3 data are off by default)
 
 ## 2. Distributed-training workshop — `workshops/distributed-training-deployment-on-sagemaker-ai/solution-2-sagemaker-training/`
 
