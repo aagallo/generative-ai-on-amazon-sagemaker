@@ -8,7 +8,7 @@ import sys
 import boto3
 
 TARGETS = {
-    "CPU quickstart": {
+    "CPU fine-tuning techniques": {
         "training job usage": ["ml.c7i.4xlarge", "ml.m7i.4xlarge", "ml.c6i.4xlarge", "ml.m6i.4xlarge", "ml.m5.4xlarge"],
         "spot training job usage": ["ml.c7i.4xlarge"],
         "endpoint usage": ["ml.m5.xlarge", "ml.m7i.xlarge", "ml.c7i.2xlarge"],

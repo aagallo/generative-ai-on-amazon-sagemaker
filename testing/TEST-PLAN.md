@@ -8,16 +8,18 @@ python testing/check_quotas.py <region>      # 0 = that type can't be used; fall
 
 Clear notebook outputs before `git pull` (Edit > Clear Outputs of All Cells), or pulls stop on modified notebooks.
 
-## 1. CPU track (no GPU) — `examples/cpu-lora-quickstart/`
+## 1. CPU track (no GPU) — `examples/cpu-fine-tuning-techniques/`
 
 `01-sft.ipynb` first, then `02-continued-pretraining`, `03-dpo`, `04-grpo` (independent; can run in parallel).
 Measured in us-east-1: 02 CPT 5 min (questions 0% → 100%), 03 DPO 9.4 min (DPO+SFT exact 0% → 90%; plain DPO
 drops JSON, by design of the lesson), 04 GRPO 13.5 min (exact 0% → 40%, reward 0.46 → 0.79).
 
-### 01-sft.ipynb (was quickstart.ipynb)
+### 01-sft.ipynb
 
 Run all cells. Expected (measured in us-east-1):
-* 3 training jobs in parallel (on-demand / spot / fallback), ~4 min each; spot billed ~57 s vs ~180 s
+* 3 training jobs in parallel (on-demand / spot / fallback), ~4 min each; spot billed ~57 s vs ~180 s.
+  If Spot has no capacity (happened on 2026-10-28), the wait cell continues 10 min after on-demand finishes and
+  the Spot job stops itself after 30 min; the rest of the notebook uses the on-demand model
 * exact match base 0% → fine-tuned 100% for all three
 * 3 endpoints (real-time / pools / serverless) in service after ~3.5 min; serverless first call ~46 s (cold start),
   then ~4 s; last cell deletes them
@@ -25,13 +27,16 @@ Run all cells. Expected (measured in us-east-1):
 ## 2. Distributed-training workshop, no-GPU path — `workshops/distributed-training-deployment-on-sagemaker-ai/solution-2-sagemaker-training/option-{1,2,3}-*/`
 
 Per option: `1-prepare-data.ipynb` → **`2b-import-pretrained.ipynb`** (instead of 2) → `3-deployment.ipynb`.
-* 2b: CPU merge job (`ml.m5.4xlarge`) ~5 min, writes the model where 3-deployment looks for it (tested: SFT)
+* 2b: CPU merge job (`ml.m5.4xlarge`) ~5 min, writes the model where 3-deployment looks for it (tested: SFT, CPT, DPO)
 * 3-deployment: GPU endpoint with 5 instance pools and a 1 h provisioning budget. Tested end to end for SFT
   (2b → 3-deployment → streamed answer → cleanup): GPU in ~10 min on the last run (~48 min on an earlier one; the
   first attempt failed after 10 min with the old 600 s budget, fixed). The SFT answer starts with a stray
   `<tool_call>` token: that comes from the workshop's QLoRA recipe, not the import
 * Fixed today: vLLM container failed to load the tokenizer saved by transformers 5 (`'list' object has no
   attribute 'keys'`). Affects normal Lab 2 runs too; `train.py` and the merge script now write a compatible config
+* 2026-10-28 DPO 2b → 3-deployment: merge OK; endpoint failed after the full 1 h with InsufficientInstanceCapacity
+  on all 5 GPU pools (no on-demand GPU in us-east-1 at that time). Capacity, not code; if it happens, retry later
+  or in another region
 * GRPO (option 4) has no shipped adapter (veRL does a full fine-tune, 8.2 GB); use its normal Lab 2
 
 ## 3. Distributed-training workshop, GPU training path (capacity changes)
