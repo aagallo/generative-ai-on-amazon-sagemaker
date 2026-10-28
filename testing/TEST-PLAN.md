@@ -8,7 +8,13 @@ python testing/check_quotas.py <region>      # 0 = that type can't be used; fall
 
 Clear notebook outputs before `git pull` (Edit > Clear Outputs of All Cells), or pulls stop on modified notebooks.
 
-## 1. CPU quickstart (no GPU) — `examples/cpu-lora-quickstart/quickstart.ipynb`
+## 1. CPU track (no GPU) — `examples/cpu-lora-quickstart/`
+
+`01-sft.ipynb` first, then `02-continued-pretraining`, `03-dpo`, `04-grpo` (independent; can run in parallel).
+Measured in us-east-1: 02 CPT 5 min (questions 0% → 100%), 03 DPO 9.4 min (DPO+SFT exact 0% → 90%; plain DPO
+drops JSON, by design of the lesson), 04 GRPO 13.5 min (exact 0% → 40%, reward 0.46 → 0.79).
+
+### 01-sft.ipynb (was quickstart.ipynb)
 
 Run all cells. Expected (measured in us-east-1):
 * 3 training jobs in parallel (on-demand / spot / fallback), ~4 min each; spot billed ~57 s vs ~180 s
