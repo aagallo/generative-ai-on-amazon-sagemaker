@@ -28,27 +28,24 @@ Run all cells. Expected (measured in us-east-1):
 * 3 endpoints (real-time / pools / serverless) in service after ~3.5 min; serverless first call ~46 s (cold start),
   then ~4 s; last cell deletes them
 
-## 2. Distributed-training workshop, no-GPU path — `workshops/distributed-training-deployment-on-sagemaker-ai/solution-2-sagemaker-training/option-{1,2,3}-*/`
+## 2. Distributed-training workshop — `workshops/distributed-training-deployment-on-sagemaker-ai/solution-2-sagemaker-training/`
 
-Per option: `1-prepare-data.ipynb` → **`2b-import-pretrained.ipynb`** (instead of 2) → `3-deployment.ipynb`.
-* 2b: CPU merge job (`ml.m5.4xlarge`) ~5 min, writes the model where 3-deployment looks for it (tested: SFT, CPT, DPO)
-* 3-deployment: GPU endpoint with 5 instance pools and a 1 h provisioning budget. Tested end to end for SFT
-  (2b → 3-deployment → streamed answer → cleanup): GPU in ~10 min on the last run (~48 min on an earlier one; the
-  first attempt failed after 10 min with the old 600 s budget, fixed). The SFT answer starts with a stray
-  `<tool_call>` token: that comes from the workshop's QLoRA recipe, not the import
-* Fixed today: vLLM container failed to load the tokenizer saved by transformers 5 (`'list' object has no
-  attribute 'keys'`). Affects normal Lab 2 runs too; `train.py` and the merge script now write a compatible config
-* 2026-10-28 DPO 2b → 3-deployment: merge OK; endpoint failed after the full 1 h with InsufficientInstanceCapacity
-  on all 5 GPU pools (no on-demand GPU in us-east-1 at that time). Capacity, not code; if it happens, retry later
-  or in another region
-* GRPO (option 4) has no shipped adapter (veRL does a full fine-tune, 8.2 GB); use its normal Lab 2
+Two branches feed this section (two separate PRs):
+* `feat/capacity-fallback` (PR1): in `2-*.ipynb`, the capacity cell offers `CAPACITY = "on-demand"` (default
+  behaviour of the original), `"spot"` or `"fallback"`; the fallback list is filtered by training quota; Spot jobs
+  checkpoint to a per-run S3 prefix and resume after an interruption. `3-deployment.ipynb` uses 5 endpoint
+  instance pools with a 1 h provisioning budget.
+* `fix/distributed-training`: FSDP without CPU offload in CPT/SFT (fixes the grad-clipping crash), `mlflow_uri`
+  must be the MLflow App ARN (or empty to skip; a URL gives 403), and `train.py` writes a tokenizer config the vLLM
+  container can load (`'list' object has no attribute 'keys'` otherwise).
 
-## 3. Distributed-training workshop, GPU training path (capacity changes)
+Per option: `1-prepare-data` → `2-*` (try `"fallback"`, and `"spot"` if you can wait) → `3-deployment`. All of 2
+and 3 need GPUs: training on `ml.g5/g6/g6e.12xlarge`-class (4 GPUs), the endpoint on one GPU. On 2026-10-28 a
+DPO endpoint failed after the full 1 h with InsufficientInstanceCapacity on all 5 pools in us-east-1: capacity,
+not code; retry later or in another region. (The earlier no-GPU "2b" import path was removed from PR1;
+archived locally and at tag `pr1-with-2b`.)
 
-In `2-*.ipynb`, set `CAPACITY = "spot"` or `"fallback"` in the capacity cell; mlflow_uri must be the MLflow App ARN
-(or empty to skip). Expect: fallback list filtered by quota; FSDP without CPU offload (fixes the grad-clipping crash).
-
-## 4. OpenVLA — `examples/openvla-lora-sagemaker/`
+## 3. OpenVLA — `examples/openvla-lora-sagemaker/`
 
 `config.py`: `DATASET = "libero"` (default), `RUN_MODE = "smoke"`, `CAPACITY = "fallback"`.
 * Path: `1-prepare-data` (CPU, ~15 s) → `2-fine-tune-vla` (smoke run on one L40S, fallback over g6e sizes; ~20 min

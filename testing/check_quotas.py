@@ -20,8 +20,7 @@ TARGETS = {
         "endpoint usage": ["ml.g6.2xlarge", "ml.g5.2xlarge", "ml.g6e.xlarge", "ml.g5.4xlarge", "ml.g6e.2xlarge"],
     },
     "Distributed training workshop, options 1-3 (CPT/SFT/DPO)": {
-        "training job usage": ["ml.g5.12xlarge", "ml.g6.12xlarge", "ml.g6e.12xlarge", "ml.g5.24xlarge",
-                               "ml.m5.4xlarge"],  # m5.4xlarge: 2b CPU merge job
+        "training job usage": ["ml.g5.12xlarge", "ml.g6.12xlarge", "ml.g6e.12xlarge", "ml.g5.24xlarge"],
         "spot training job usage": ["ml.g5.12xlarge"],
         "endpoint usage": ["ml.g5.2xlarge", "ml.g6.2xlarge", "ml.g6e.xlarge", "ml.g5.4xlarge", "ml.g6.4xlarge"],
     },
